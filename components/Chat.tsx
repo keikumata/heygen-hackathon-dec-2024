@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { User } from 'lucide-react'
+import { useMessages } from '@/app/context/MessageContext'
 
 export interface Message {
   id: string
@@ -25,12 +26,12 @@ export interface Message {
 interface ChatProps {
   className?: string
   messages: Message[]
-  setMessages: (messages: Message[]) => void
   onNewMessage: (message: string) => void
   disabled?: boolean
 }
 
-export function Chat({ className, messages, setMessages, onNewMessage, disabled = false }: ChatProps) {
+export function Chat({ className, messages, disabled = false }: ChatProps) {
+  const { addMessage } = useMessages();
   const [inputMessage, setInputMessage] = useState('')
   const [username, setUsername] = useState('')
   const [isSettingUsername, setIsSettingUsername] = useState(!localStorage.getItem('username'))
@@ -52,8 +53,7 @@ export function Chat({ className, messages, setMessages, onNewMessage, disabled 
         timestamp: new Date(),
       }
       console.log("New message:", newMessage)
-      setMessages([...messages, newMessage])
-      onNewMessage?.(inputMessage.trim())
+      addMessage?.(inputMessage.trim())
       setInputMessage('')
     }
   }

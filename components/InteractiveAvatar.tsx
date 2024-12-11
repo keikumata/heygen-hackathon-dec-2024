@@ -15,12 +15,15 @@ import {
 } from "@nextui-org/react";
 import { useEffect, useRef, useState } from "react";
 import { Message } from "./Chat";
+import { cn } from "@/lib/utils";
+import { useMessages } from "@/app/context/MessageContext";
 
 interface InteractiveAvatarProps {
-  messages: Message[];
+  isMinimized?: boolean;
 }
 
-export default function InteractiveAvatar({ messages }: InteractiveAvatarProps) {
+export default function InteractiveAvatar({ isMinimized = false }: InteractiveAvatarProps) {
+  const { messages } = useMessages();
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
   const [debug, setDebug] = useState<string>();
@@ -133,6 +136,7 @@ export default function InteractiveAvatar({ messages }: InteractiveAvatarProps) 
     }
 
     setIsGeneratingResponse(true);
+    console.log("Generating response for message:", message);
     try {
       const response = await generateResponse(message);
       
@@ -174,6 +178,7 @@ export default function InteractiveAvatar({ messages }: InteractiveAvatarProps) 
   }, [stream]);
 
   useEffect(() => {
+    console.log("messages", messages);
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.username === "User") {
       handleMessage(lastMessage.content);
@@ -181,51 +186,70 @@ export default function InteractiveAvatar({ messages }: InteractiveAvatarProps) 
   }, [messages]);
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      <Card>
-        <CardBody className="h-[500px] flex flex-col justify-center items-center">
-          {!isInitialized ? (
-            <Button 
-              onClick={async () => {
-                await initializeAudioContext();
-                startSession();
-              }}
-            >
-              Start Avatar Session
-            </Button>
-          ) : isLoadingSession ? (
-            <Spinner color="default" size="lg" />
-          ) : stream ? (
-            <div className="h-[500px] w-[900px] justify-center items-center flex rounded-lg overflow-hidden">
-              <video
-                ref={mediaStream}
-                autoPlay
-                playsInline
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }}
-              >
-                <track kind="captions" />
-              </video>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <div>Failed to load avatar</div>
-              {error && <div className="text-sm text-red-500">{error}</div>}
+    <div className={cn(
+      "w-full flex flex-col gap-4",
+      isMinimized && "h-full"
+    )}>
+      <div className={cn(
+        isMinimized ? "h-full" : "h-[500px]",
+        "relative"
+      )}>
+        {!isInitialized ? (
+          <Card className="h-full">
+            <CardBody className="flex flex-col justify-center items-center p-4">
               <Button 
-                onClick={() => {
-                  setError(undefined);
+                onClick={async () => {
+                  await initializeAudioContext();
                   startSession();
                 }}
               >
-                Retry
+                Start Avatar Session
               </Button>
-            </div>
-          )}
-        </CardBody>
-      </Card>
+            </CardBody>
+          </Card>
+        ) : isLoadingSession ? (
+          <Card className="h-full">
+            <CardBody className="flex flex-col justify-center items-center p-4">
+              <Spinner color="default" size="lg" />
+            </CardBody>
+          </Card>
+        ) : stream ? (
+          <div className={cn(
+            "justify-center items-center flex rounded-lg overflow-hidden",
+            isMinimized ? "w-full h-full" : "h-[500px] w-[900px]"
+          )}>
+            <video
+              ref={mediaStream}
+              autoPlay
+              playsInline
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: isMinimized ? "cover" : "contain",
+              }}
+            >
+              <track kind="captions" />
+            </video>
+          </div>
+        ) : (
+          <Card className="h-full">
+            <CardBody className="flex flex-col justify-center items-center p-4">
+              <div className="flex flex-col items-center gap-2">
+                <div>Failed to load avatar</div>
+                {error && <div className="text-sm text-red-500">{error}</div>}
+                <Button 
+                  onClick={() => {
+                    setError(undefined);
+                    startSession();
+                  }}
+                >
+                  Retry
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

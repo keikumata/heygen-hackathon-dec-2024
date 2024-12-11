@@ -3,35 +3,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Logo } from '@/components/Logo'
-import { VideoStream } from '@/components/VideoStream'
 import { ProductView } from '@/components/ProductView'
-import { Chat, Message } from '@/components/Chat'
+import { Chat } from '@/components/Chat'
 import Image from 'next/image'
-import InteractiveAvatar from '@/components/InteractiveAvatar'
+import { useVideoStream } from '@/app/context/VideoStreamContext'
+import { useMessages } from '@/app/context/MessageContext'
 
 export default function LiveShoppingPage() {
   const [isProductView, setIsProductView] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   const [dragConstraints, setDragConstraints] = useState({ top: 0, left: 0, right: 0, bottom: 0 })
   const isDragging = useRef(false)
+  const { VideoStreamComponent } = useVideoStream()
+  const { messages, addMessage } = useMessages()
   
-  const handleNewMessage = (message: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      username: "User",
-      content: message,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMessage]);
-  };
-
-  const videoStream = (
-    <InteractiveAvatar 
-      messages={messages}
-    />
-  );
-
   useEffect(() => {
     const updateConstraints = () => {
       if (containerRef.current) {
@@ -68,7 +53,7 @@ export default function LiveShoppingPage() {
               transition={{ type: "spring", bounce: 0.2 }}
               className="absolute inset-0"
             >
-              {videoStream}
+              <VideoStreamComponent messages={messages} isMinimized={isProductView} />
             </motion.div>
             <motion.div
               key="product"
@@ -109,7 +94,9 @@ export default function LiveShoppingPage() {
             }}
           >
             {isProductView ? (
-              videoStream
+              <div className="w-full h-full">
+                <VideoStreamComponent messages={messages} isMinimized={isProductView} />
+              </div>
             ) : (
               <Image
                 src="/product.png"
@@ -123,8 +110,7 @@ export default function LiveShoppingPage() {
         <Chat 
           className="w-full md:w-96 h-[30vh] md:h-full" 
           messages={messages}
-          setMessages={setMessages}
-          onNewMessage={handleNewMessage}
+          onNewMessage={(message) => addMessage(message, true)}
           disabled={false}
         />
       </main>
