@@ -33,6 +33,8 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   const [error, setError] = useState<string>();
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [hasIntroduced, setHasIntroduced] = useState(false);
+  const hasInitialized = useRef(false);
+  const hasPlayedIntro = useRef(false);
 
   async function fetchAccessToken() {
     try {
@@ -73,6 +75,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   async function endSession() {
     await avatar.current?.stopAvatar();
     setStream(undefined);
+    hasPlayedIntro.current = false;
   }
 
   async function introduceProduct() {
@@ -120,9 +123,13 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     });
     
     avatar.current.on(StreamingEvents.STREAM_READY, async(event) => {
-      console.log("Stream ready:", event.detail);
       setStream(event.detail);
-      await introduceProduct();
+      
+      if (!hasPlayedIntro.current) {
+        console.log("Stream and start intro");
+        await introduceProduct();
+        hasPlayedIntro.current = true;
+      }
     });
 
     try {
@@ -199,6 +206,18 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     }
   }, [messages, hasIntroduced]);
 
+  useEffect(() => {
+    const initAndStart = async () => {
+      if (hasInitialized.current) return;
+      hasInitialized.current = true;
+      
+      await initializeAudioContext();
+      await startSession();
+    };
+    
+    initAndStart();
+  }, []); // Run once on mount
+
   return (
     <div className={cn(
       "w-full flex flex-col gap-4 h-full justify-center items-center",
@@ -208,20 +227,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         isMinimized ? "h-full" : "h-[500px]",
         "relative w-full flex justify-center items-center"
       )}>
-        {!isInitialized ? (
-          <Card className="h-full w-full max-w-[900px]">
-            <CardBody className="flex flex-col justify-center items-center p-4">
-              <Button 
-                onClick={async () => {
-                  await initializeAudioContext();
-                  startSession();
-                }}
-              >
-                Start Avatar Session
-              </Button>
-            </CardBody>
-          </Card>
-        ) : isLoadingSession ? (
+        {isLoadingSession ? (
           <Card className="h-full w-full max-w-[900px]">
             <CardBody className="flex flex-col justify-center items-center p-4">
               <Spinner color="default" size="lg" />
