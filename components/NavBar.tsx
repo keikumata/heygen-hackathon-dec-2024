@@ -1,5 +1,6 @@
 "use client";
 
+import NextLink from "next/link"; // Add this import
 import {
   Link,
   Navbar,
@@ -25,6 +26,9 @@ export default function NavBar() {
       </NavbarBrand>
       <NavbarContent justify="center">
         <NavbarItem className="flex flex-row items-center gap-4">
+          <NextLink href="/product-stream" className="text-foreground">
+            Product Stream
+          </NextLink>
           <Link
             isExternal
             color="foreground"
