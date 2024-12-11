@@ -32,6 +32,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string>();
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
+  const [hasIntroduced, setHasIntroduced] = useState(false);
 
   async function fetchAccessToken() {
     try {
@@ -47,10 +48,47 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     return "";
   }
 
+  async function generateResponse(message: string, isIntroduction = false) {
+    try {
+      const response = await fetch('/api/generate-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          context: messages,
+          isIntroduction
+        }),
+      });
+      
+      const data = await response.json();
+      return data.response;
+    } catch (error) {
+      console.error('Error generating response:', error);
+      return 'I apologize, but I am having trouble generating a response right now.';
+    }
+  }
 
   async function endSession() {
     await avatar.current?.stopAvatar();
     setStream(undefined);
+  }
+
+  async function introduceProduct() {
+    if (!avatar.current) return;
+    
+    try {
+      const introResponse = await generateResponse("Introduce the product", true);
+      await avatar.current.speak({
+        text: introResponse,
+        taskType: TaskType.REPEAT,
+        taskMode: TaskMode.SYNC
+      });
+      setHasIntroduced(true);
+    } catch (error) {
+      console.error("Error introducing product:", error);
+    }
   }
 
   async function startSession() {
@@ -67,18 +105,22 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     avatar.current = new StreamingAvatar({
       token: newToken,
     });
+    
     avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
       console.log("Avatar started talking", e);
     });
+    
     avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
       console.log("Avatar stopped talking", e);
     });
+    
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
       console.log("Stream disconnected");
       endSession();
     });
-    avatar.current?.on(StreamingEvents.STREAM_READY, (event) => {
-      console.log(">>>>> Stream ready:", event.detail);
+    
+    avatar.current.on(StreamingEvents.STREAM_READY, (event) => {
+      console.log("Stream ready:", event.detail);
       setStream(event.detail);
     });
 
@@ -94,38 +136,17 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         disableIdleTimeout: true,
       });
 
-      console.log(res)
-
       if (!res.stream) {
         throw new Error("No stream received from avatar creation");
       }
       
       setStream(res.stream);
+      await introduceProduct();
     } catch (error: any) {
       console.error("Error starting avatar session:", error);
       setError(error.message || "Failed to initialize avatar");
+    } finally {
       setIsLoadingSession(false);
-    }
-  }
-
-  async function generateResponse(message: string) {
-    try {
-      const response = await fetch('/api/generate-response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          context: messages
-        }),
-      });
-      
-      const data = await response.json();
-      return data.response;
-    } catch (error) {
-      console.error('Error generating response:', error);
-      return 'I apologize, but I am having trouble generating a response right now.';
     }
   }
 
@@ -138,12 +159,11 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     setIsGeneratingResponse(true);
     console.log("Generating response for message:", message);
     try {
-      const response = await generateResponse(message);
-      
-      await avatar.current.speak({ 
+      const response = await generateResponse(message, false);
+      await avatar.current.speak({
         text: response,
-        taskType: TaskType.REPEAT, 
-        taskMode: TaskMode.SYNC 
+        taskType: TaskType.REPEAT,
+        taskMode: TaskMode.SYNC
       });
     } catch (e: any) {
       setDebug(e.message);
@@ -180,10 +200,10 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   useEffect(() => {
     console.log("messages", messages);
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.username === "User") {
+    if (lastMessage && lastMessage.username === "User" && hasIntroduced) {
       handleMessage(lastMessage.content);
     }
-  }, [messages]);
+  }, [messages, hasIntroduced]);
 
   return (
     <div className={cn(

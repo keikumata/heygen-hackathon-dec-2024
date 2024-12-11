@@ -1,0 +1,60 @@
+{
+    "ProductInformation": {
+    "TechnicalDetails": {
+    "ItemPackageDimensions": {
+    "Length": "26.25 inches",
+    "Width": "5.25 inches",
+    "Height": "5.25 inches"
+    },
+    "PackageWeight": "3.27 Kilograms",
+    "ItemDimensions": {
+    "Length": "71 inches",
+    "Width": "26 inches",
+    "Height": "0.24 inches"
+    },
+    "ItemWeight": "7 Pounds",
+    "BrandName": "Manduka",
+    "CountryOfOrigin": "Germany",
+    "ModelName": "PRO",
+    "Color": "Black",
+    "Material": "Polyvinyl Chloride",
+    "SuggestedUsers": "yoga-mats",
+    "NumberOfItems": 1,
+    "Manufacturer": "Manduka",
+    "PartNumber": "111011010",
+    "ModelYear": 2010,
+    "Style": "PRO Yoga Mat",
+    "IncludedComponents": ["yoga mat"],
+    "Size": "71\" x 26\"",
+    "SportType": ["Exercise & Fitness", "Yoga", "Pilates"]
+    },
+    "ProductIntroduction": {
+    "Product": "PRO™ Yoga Mat 6mm by Manduka",
+    "Description": "A high-quality, durable yoga mat that is perfect for all levels of yoga practitioners.",
+    "Features": {
+    "BestInClassMat": "Our PRO multipurpose workout mat is the #1 recommended mat by fitness instructors and yoga therapists all over the world, built to last a lifetime.",
+    "HighDensityCushion": "Ultra-dense, 6 mm cushioning provides superior support, stability, and joint protection, along with comfort on any surface.",
+    "ResponsiblyMade": "Each mat is meticulously handmade in an emissions-free German facility with 100% latex-free PVC that has been certified STANDARD 100 by OEKO-TEX; Handmade products may vary slightly in length, width and/or thickness.",
+    "BreakingInYourMat": "The non-slip grip of the mat will improve with use, and the textured top layer allows you to flow between postures without sticking; Keep practicing to break your mat in over time."
+    },
+    "CareInstructions": {
+    "StandardCare": "Our closed-cell material helps keep out moisture, but to keep your mat clean and smelling fresh, use our Yoga Mat Wash & Refresh spray and Botanical Cleaner. Other cleaning solutions are not tested/recommended.",
+    "AdditionalCare": [
+    "Wipe clean with a damp cloth.",
+    "Do not use harsh chemicals or detergents.",
+    "Air dry."
+    ]
+    },
+    "Benefits": [
+    "Durable and long-lasting.",
+    "Eco-friendly and free of harmful chemicals.",
+    "Easy to clean and maintain."
+    ],
+    "GreenMission": {
+    "Summary": "Manduka PRO series yoga mats are designed to last a lifetime (or two), curbing the amount of PVC mats that enter landfills and reducing overall mat consumption.",
+    "ManufacturingProcess": "PRO series mats are manufactured through a process that ensures no toxic emissions are released into the atmosphere, unlike most PVC products.",
+    "Certification": "The Black Mat PRO is certified safe for human contact by OEKO-TEX, an environmental certification agency in Europe for the textile industry."
+    }
+    }
+    }
+    }
