@@ -73,7 +73,7 @@ const ProductStream: React.FC = () => {
     try {
       const res = await avatar.current.createStartAvatar({
         quality: AvatarQuality.Medium,
-        avatarName: "your_avatar_id", // Replace with your avatar ID
+        avatarName: "josh_lite3_20230714", // Replace with your avatar ID
         knowledgeId: "your_knowledge_base_id", // Replace with your knowledge base ID
         voice: {
           rate: 1.2,
