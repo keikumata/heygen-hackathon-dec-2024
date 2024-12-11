@@ -1,67 +1,13 @@
 {
+    "intro": "Hey guys! 👋 it's your favorite girl Twinkle Vicky! Are you tired of squeezing gym time into your busy day? I've got two game-changing fitness must-haves that bring the gym right to your home. For this Christmas season, EVERYTHING is 25% OFF and I'm throwing in FREE SHIPPING just for you.",
     "products": [
       {
-        "id": "manduka-pro",
-        "name": "Manduka PRO Yoga Mat",
-        "originalPrice": 150,
-        "salePrice": 112,
-        "image": "/product.png",
-        "inStock": true,
-        "description": "Professional-grade yoga mat designed for ultimate comfort and durability. Features superior grip, eco-friendly materials, and optimal thickness for stability.",
-        "details": {
-          "features": {
-            "BestInClassMat": "Premium cushioning and unparalleled support",
-            "HighDensityCushion": "6mm thickness for joint protection",
-            "ResponsiblyMade": "Eco-friendly materials, OEKO-TEX certified",
-            "BreakingInYourMat": "Improves grip over time with use"
-          },
-          "technicalDetails": {
-            "size": "71\" x 26\" x 6mm",
-            "material": "PVC",
-            "weight": "7.5 lbs",
-            "color": "Crimson Red"
-          }
-        },
-        "maxQuestions": 3,
-        "suggestedQuestions": [
-          "What makes this mat different from others?",
-          "How do I clean and maintain it?",
-          "Is it suitable for hot yoga?"
-        ]
+        "id": "walking-pad",
+        "speech": "First up, the sleek and quiet Walking Pad. Whether you're taking calls, watching the game, or catching up on emails, this lets you stay active without skipping a beat. Right now, you can get 25% off the walking pad, originally priced at $150, now it is only $112"
       },
       {
-        "id": "stanley-quencher",
-        "name": "Stanley Quencher",
-        "originalPrice": 35,
-        "salePrice": 20,
-        "image": "/stanley.png",
-        "inStock": true,
-        "description": "30oz vacuum-insulated tumbler that keeps drinks ice-cold all day long. Perfect for hot yoga sessions.",
-        "details": {
-          "features": {
-            "Insulation": "Double-wall vacuum insulation",
-            "Capacity": "30 oz capacity",
-            "Construction": "Stainless steel construction",
-            "Ergonomic": "Comfortable handle design"
-          },
-          "technicalDetails": {
-            "size": "30 oz",
-            "material": "Stainless Steel",
-            "weight": "1.5 lbs",
-            "color": "Various Colors"
-          }
-        },
-        "maxQuestions": 3,
-        "suggestedQuestions": [
-          "How long does it keep drinks cold?",
-          "Is it dishwasher safe?",
-          "What colors are available?"
-        ]
+        "id": "auto-foam-roller",
+        "speech": "And check out these Auto foam rollers! You can fully relax and get deep tissue stimulation from a compact electronic foam roller, that is hands-free and way better than a normal foam rolling. Original price for $250 but we are doing $100 in our live, exclusive deal just for you today."
       }
-    ],
-    "saleInfo": {
-      "discount": 25,
-      "freeShipping": true,
-      "seasonalMessage": "Christmas Special"
-    }
+    ]
   }

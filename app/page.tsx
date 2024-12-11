@@ -9,42 +9,56 @@ import { useMessages } from '@/app/context/MessageContext'
 import StreamStartOverlay from '@/components/StreamStartOverlay'
 
 const PRODUCTS = [
-  { id: 'manduka-pro', maxQuestions: 3 },
-  { id: 'stanley-quencher', maxQuestions: 3 }
+  { id: 'walking-pad', maxQuestions: 3 },
+  { id: 'auto-foam-roller', maxQuestions: 3 }
 ]
 
 export default function LiveShoppingPage() {
-  const { VideoStreamComponent, setStreamInstance, streamProduct } = useVideoStream()
+  const { VideoStreamComponent, setStreamInstance } = useVideoStream()
   const { messages, addMessage, clearMessages } = useMessages()
   const [hasStarted, setHasStarted] = useState(false)
   const [currentProductIndex, setCurrentProductIndex] = useState(0)
   const [questionCount, setQuestionCount] = useState(0)
-
   const currentProduct = PRODUCTS[currentProductIndex]
 
-  useEffect(() => {
-    if (hasStarted && streamProduct) {
-      streamProduct(currentProduct.id)
+  const streamProduct = async () => {
+    const response = await fetch('/api/product-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        productId: currentProduct.id,
+        type: 'stream'
+      })
+    });
+    const { script } = await response.json();
+    if (VideoStreamComponent) {
+      await VideoStreamComponent.speak(script);
     }
-  }, [hasStarted, currentProduct.id, streamProduct])
+  };
+
+  useEffect(() => {
+    if (hasStarted) {
+      streamProduct();
+    }
+  }, [hasStarted, currentProductIndex]);
 
   useEffect(() => {
     if (questionCount >= currentProduct.maxQuestions && currentProductIndex < PRODUCTS.length - 1) {
-      setCurrentProductIndex(prev => prev + 1)
-      setQuestionCount(0)
-      clearMessages()
+      setCurrentProductIndex(prev => prev + 1);
+      setQuestionCount(0);
+      clearMessages();
     }
-  }, [questionCount, currentProductIndex])
+  }, [questionCount, currentProductIndex]);
 
   const handleNewMessage = (message: string) => {
-    addMessage(message, true)
-    setQuestionCount(prev => prev + 1)
-  }
+    addMessage(message, true);
+    setQuestionCount(prev => prev + 1);
+  };
 
   const handleStart = () => {
-    setHasStarted(true)
-    setStreamInstance(null)
-  }
+    setHasStarted(true);
+    setStreamInstance(null);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
