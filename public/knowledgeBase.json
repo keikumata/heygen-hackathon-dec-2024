@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
     "ProductInformation": {
     "TechnicalDetails": {
     "ItemPackageDimensions": {
@@ -58,3 +59,61 @@
     }
     }
     }
+=======
+    "hostIntroduction": "Hey loves, it's your favorite girl Twinkle Vicky! I've got something super special for my girlies! This Christmas season you will feel the love and joy you deserve. So, guess what? EVERYTHING is **25% OFF** – yes, EVERYTHING – and I'm throwing in **FREE SHIPPING** just for you.",
+    "products": [
+      {
+        "id": "manduka-pro-mat",
+        "name": "Manduka PRO Yoga Mat",
+        "introduction": "Our first product Manduka PRO Yoga Mat, a must-have for any yoga lover. Whether you're a beginner or a seasoned pro, this mat is designed for ultimate comfort and durability. Right now, you can get **25% off** the Manduka PRO Yoga Mat, originally priced at $150, now it is only $112",
+        "originalPrice": 150,
+        "salePrice": 112,
+        "discount": "25%",
+        "questionsAnswered": 0,
+        "maxQuestions": 3,
+        "details": {
+          "technicalDetails": {
+            "dimensions": {
+              "length": "71 inches",
+              "width": "26 inches",
+              "height": "0.24 inches"
+            },
+            "weight": "7 Pounds",
+            "material": "Polyvinyl Chloride",
+            "color": "Black"
+          },
+          "features": {
+            "bestInClass": "PRO multipurpose workout mat is the #1 recommended mat by fitness instructors",
+            "cushioning": "Ultra-dense, 6 mm cushioning provides superior support and stability",
+            "ecofriendly": "Made in emissions-free German facility with 100% latex-free PVC",
+            "grip": "Non-slip grip improves with use"
+          },
+          "care": "Clean with Yoga Mat Wash & Refresh spray and Botanical Cleaner"
+        }
+      },
+      {
+        "id": "stanley-quencher",
+        "name": "Stanley Quencher",
+        "introduction": "And if you are getting thirsty from doing hot yoga with our Manduka mat, check out our holiday special Stanley Quencher. Not only looks great but also keeps drinks ice-cold all day long. Original price for $35 with 30oz but we are doing $20 in our live today.",
+        "originalPrice": 35,
+        "salePrice": 20,
+        "discount": "43%",
+        "questionsAnswered": 0,
+        "maxQuestions": 3,
+        "details": {
+          "technicalDetails": {
+            "capacity": "30 oz",
+            "material": "Stainless Steel",
+            "features": [
+              "Double-wall vacuum insulation",
+              "Keeps drinks cold for 24 hours",
+              "Keeps drinks hot for 7 hours"
+            ]
+          },
+          "colors": ["Cloud", "Rose Quartz", "Charcoal"],
+          "care": "Hand wash recommended, dishwasher safe"
+        }
+      }
+    ]
+  }
+>>>>>>> Stashed changes
