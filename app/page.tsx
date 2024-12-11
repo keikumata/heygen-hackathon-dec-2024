@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Logo } from '@/components/Logo'
 import { ProductView } from '@/components/ProductView'
 import { Chat } from '@/components/Chat'
@@ -8,16 +8,43 @@ import { useVideoStream } from '@/app/context/VideoStreamContext'
 import { useMessages } from '@/app/context/MessageContext'
 import StreamStartOverlay from '@/components/StreamStartOverlay'
 
+const PRODUCTS = [
+  { id: 'manduka-pro', maxQuestions: 3 },
+  { id: 'stanley-quencher', maxQuestions: 3 }
+]
+
 export default function LiveShoppingPage() {
-  const { VideoStreamComponent, setStreamInstance } = useVideoStream()
-  const { messages, addMessage } = useMessages()
+  const { VideoStreamComponent, setStreamInstance, streamProduct } = useVideoStream()
+  const { messages, addMessage, clearMessages } = useMessages()
   const [hasStarted, setHasStarted] = useState(false)
-  
+  const [currentProductIndex, setCurrentProductIndex] = useState(0)
+  const [questionCount, setQuestionCount] = useState(0)
+
+  const currentProduct = PRODUCTS[currentProductIndex]
+
+  useEffect(() => {
+    if (hasStarted && streamProduct) {
+      streamProduct(currentProduct.id)
+    }
+  }, [hasStarted, currentProduct.id, streamProduct])
+
+  useEffect(() => {
+    if (questionCount >= currentProduct.maxQuestions && currentProductIndex < PRODUCTS.length - 1) {
+      setCurrentProductIndex(prev => prev + 1)
+      setQuestionCount(0)
+      clearMessages()
+    }
+  }, [questionCount, currentProductIndex])
+
+  const handleNewMessage = (message: string) => {
+    addMessage(message, true)
+    setQuestionCount(prev => prev + 1)
+  }
+
   const handleStart = () => {
-    setHasStarted(true);
-    // This will trigger a re-render of VideoStreamComponent with initialization
-    setStreamInstance(null);
-  };
+    setHasStarted(true)
+    setStreamInstance(null)
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -34,18 +61,19 @@ export default function LiveShoppingPage() {
             )}
           </div>
           <div className="flex-grow">
-            <ProductView />
+            <ProductView productId={currentProduct.id} />
           </div>
         </div>
         <Chat 
-          className="w-full md:w-96 h-full" 
+          className="w-full md:w-96 h-full"
           messages={messages}
-          onNewMessage={(message) => addMessage(message, true)}
-          disabled={!hasStarted}
+          onNewMessage={handleNewMessage}
+          disabled={!hasStarted || questionCount >= currentProduct.maxQuestions}
+          remainingQuestions={currentProduct.maxQuestions - questionCount}
+          productId={currentProduct.id}
         />
       </main>
-      <StreamStartOverlay onStart={handleStart} />
+      {!hasStarted && <StreamStartOverlay onStart={handleStart} />}
     </div>
   )
 }
-
