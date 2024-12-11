@@ -119,29 +119,23 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
       endSession();
     });
     
-    avatar.current.on(StreamingEvents.STREAM_READY, (event) => {
+    avatar.current.on(StreamingEvents.STREAM_READY, async(event) => {
       console.log("Stream ready:", event.detail);
       setStream(event.detail);
+      await introduceProduct();
     });
 
     try {
       const res = await avatar.current.createStartAvatar({
-        quality: AvatarQuality.Low,
-        avatarName: "Anna_public_3_20240108",
+        quality: AvatarQuality.Medium,
+        avatarName: "fa7b34fe0b294f02b2fca6c1ed2c7158",
         voice: {
-          rate: 1.5,
+          rate: 1.2,
           emotion: VoiceEmotion.EXCITED,
         },
         language: 'en',
         disableIdleTimeout: true,
-      });
-
-      if (!res.stream) {
-        throw new Error("No stream received from avatar creation");
-      }
-      
-      setStream(res.stream);
-      await introduceProduct();
+      })
     } catch (error: any) {
       console.error("Error starting avatar session:", error);
       setError(error.message || "Failed to initialize avatar");
@@ -207,15 +201,15 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
 
   return (
     <div className={cn(
-      "w-full flex flex-col gap-4",
+      "w-full flex flex-col gap-4 h-full justify-center items-center",
       isMinimized && "h-full"
     )}>
       <div className={cn(
         isMinimized ? "h-full" : "h-[500px]",
-        "relative"
+        "relative w-full flex justify-center items-center"
       )}>
         {!isInitialized ? (
-          <Card className="h-full">
+          <Card className="h-full w-full max-w-[900px]">
             <CardBody className="flex flex-col justify-center items-center p-4">
               <Button 
                 onClick={async () => {
@@ -228,31 +222,36 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
             </CardBody>
           </Card>
         ) : isLoadingSession ? (
-          <Card className="h-full">
+          <Card className="h-full w-full max-w-[900px]">
             <CardBody className="flex flex-col justify-center items-center p-4">
               <Spinner color="default" size="lg" />
             </CardBody>
           </Card>
         ) : stream ? (
           <div className={cn(
-            "justify-center items-center flex rounded-lg overflow-hidden",
+            "justify-center items-center flex rounded-lg overflow-hidden relative",
             isMinimized ? "w-full h-full" : "h-[500px] w-[900px]"
           )}>
             <video
               ref={mediaStream}
               autoPlay
               playsInline
+              className="absolute"
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: isMinimized ? "cover" : "contain",
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                transform: "translate(-50%, -50%)",
               }}
             >
               <track kind="captions" />
             </video>
           </div>
         ) : (
-          <Card className="h-full">
+          <Card className="h-full w-full max-w-[900px]">
             <CardBody className="flex flex-col justify-center items-center p-4">
               <div className="flex flex-col items-center gap-2">
                 <div>Failed to load avatar</div>
