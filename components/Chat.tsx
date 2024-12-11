@@ -15,7 +15,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { User } from 'lucide-react'
 
-interface Message {
+export interface Message {
   id: string
   username: string
   content: string
@@ -24,10 +24,13 @@ interface Message {
 
 interface ChatProps {
   className?: string
+  messages: Message[]
+  setMessages: (messages: Message[]) => void
+  onNewMessage: (message: string) => void
+  disabled?: boolean
 }
 
-export function Chat({ className }: ChatProps) {
-  const [messages, setMessages] = useState<Message[]>([])
+export function Chat({ className, messages, setMessages, onNewMessage, disabled = false }: ChatProps) {
   const [inputMessage, setInputMessage] = useState('')
   const [username, setUsername] = useState('')
   const [isSettingUsername, setIsSettingUsername] = useState(!localStorage.getItem('username'))
@@ -48,7 +51,9 @@ export function Chat({ className }: ChatProps) {
         content: inputMessage.trim(),
         timestamp: new Date(),
       }
+      console.log("New message:", newMessage)
       setMessages([...messages, newMessage])
+      onNewMessage?.(inputMessage.trim())
       setInputMessage('')
     }
   }
@@ -124,10 +129,10 @@ export function Chat({ className }: ChatProps) {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder={username ? "Type your message..." : "Set username to chat"}
-            disabled={!username}
+            disabled={!username || disabled}
             className="flex-grow"
           />
-          <Button type="submit" disabled={!username}>
+          <Button type="submit" disabled={!username || disabled}>
             Send
           </Button>
         </form>

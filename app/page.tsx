@@ -5,15 +5,32 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Logo } from '@/components/Logo'
 import { VideoStream } from '@/components/VideoStream'
 import { ProductView } from '@/components/ProductView'
-import { Chat } from '@/components/Chat'
+import { Chat, Message } from '@/components/Chat'
 import Image from 'next/image'
+import InteractiveAvatar from '@/components/InteractiveAvatar'
 
 export default function LiveShoppingPage() {
   const [isProductView, setIsProductView] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   const [dragConstraints, setDragConstraints] = useState({ top: 0, left: 0, right: 0, bottom: 0 })
   const isDragging = useRef(false)
-  const videoStream = <VideoStream />
+  
+  const handleNewMessage = (message: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      username: "User",
+      content: message,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+  };
+
+  const videoStream = (
+    <InteractiveAvatar 
+      messages={messages}
+    />
+  );
 
   useEffect(() => {
     const updateConstraints = () => {
@@ -103,7 +120,13 @@ export default function LiveShoppingPage() {
             )}
           </motion.div>
         </div>
-        <Chat className="w-full md:w-96 h-[30vh] md:h-full" />
+        <Chat 
+          className="w-full md:w-96 h-[30vh] md:h-full" 
+          messages={messages}
+          setMessages={setMessages}
+          onNewMessage={handleNewMessage}
+          disabled={false}
+        />
       </main>
     </div>
   )
