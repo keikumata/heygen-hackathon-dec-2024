@@ -1,11 +1,8 @@
 import OpenAI from 'openai';
 import { Message } from '@/components/Chat';
 import { promises as fs } from 'fs';
+import { NextResponse } from 'next/server';
 import path from 'path';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 interface Product {
   id: string;
@@ -23,6 +20,18 @@ interface KnowledgeBase {
   hostIntroduction: string;
   products: Product[];
 }
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const systemMessage = `You are a live shopping host showcasing products to customers. Your responses should be:
+- Enthusiastic and engaging while maintaining professionalism
+- Focused on highlighting product benefits and features
+- Factual and based on available product information
+- Natural in tone, as if speaking to viewers live
+- Concise but informative
+- Sales-oriented but not pushy`;
 
 async function getProductData(): Promise<KnowledgeBase> {
   try {
@@ -50,34 +59,35 @@ async function updateQuestionCount(productId: string): Promise<void> {
   }
 }
 
+function formatMessage(msg: Message) {
+  return {
+    role: msg.username === "User" ? "user" : "assistant",
+    content: msg.content
+  };
+}
+
 export async function POST(request: Request) {
   try {
     if (!process.env.OPENAI_API_KEY) {
-      return new Response('OpenAI API key is missing', { status: 500 });
+      return NextResponse.json({ error: 'OpenAI API key is missing' }, { status: 500 });
     }
 
     const body = await request.json();
-    const { message, context, productId } = body;
+    const { message, context, productId, isIntroduction } = body;
 
     const productData = await getProductData();
     const product = productData.products.find(p => p.id === productId);
 
     if (!product) {
-      return new Response(JSON.stringify({ error: 'Product not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    if (product.questionsAnswered >= product.maxQuestions) {
-      return new Response(JSON.stringify({ 
+    if (!isIntroduction && product.questionsAnswered >= product.maxQuestions) {
+      return NextResponse.json({ 
         error: 'Maximum questions reached for this product',
         questionsAnswered: product.questionsAnswered,
         maxQuestions: product.maxQuestions
-      }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      }, { status: 403 });
     }
 
     const productContext = `
@@ -87,56 +97,39 @@ Details: ${JSON.stringify(product.details, null, 2)}
     `.trim();
 
     const messages = [
-      systemMessage,
-      ...(isIntroduction
-        ? []
-        : context.map((msg: Message) => ({
-            role: msg.username === "User" ? ("user" as const) : ("assistant" as const),
-            content: msg.content,
-          }))),
+      { role: "system", content: systemMessage },
       {
-        role: "system" as const,
-        content: `You are a helpful shopping assistant answering questions about ${product.name}. Use this product information:
-${productContext}
-Keep responses concise and friendly. If asked about topics not covered in the product information, be honest about not having that specific information.`,
+        role: "system",
+        content: `You are answering questions about ${product.name}. Product information: ${productContext}`
       },
-      ...context.filter(msg => msg.productId === productId).map((msg: Message) => ({
-        role: msg.username === "User" ? ("user" as const) : ("assistant" as const),
-        content: msg.content,
-      })),
-      {
-        role: "user" as const,
-        content: message,
-      },
+      ...(!isIntroduction ? context.filter(msg => msg.productId === productId).map(formatMessage) : []),
+      { role: "user", content: message }
     ];
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages,
       temperature: 0.6,
-      max_tokens: 500,
+      max_tokens: 500
     });
 
-    const response = completion.choices[0]?.message?.content ||
-      "I apologize, but I'm having trouble generating a response right now.";
+    const response = completion.choices[0]?.message?.content;
 
-    await updateQuestionCount(productId);
+    if (!isIntroduction) {
+      await updateQuestionCount(productId);
+    }
 
-    return new Response(JSON.stringify({ 
+    return NextResponse.json({
       response,
       questionsAnswered: product.questionsAnswered + 1,
       maxQuestions: product.maxQuestions
-    }), {
-      headers: { 'Content-Type': 'application/json' },
     });
+
   } catch (error: any) {
-    console.error('Error generating response:', error);
-    return new Response(
-      JSON.stringify({
-        error: 'Failed to generate response',
-        details: error.message
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('Error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to generate response',
+      details: error.message 
+    }, { status: 500 });
   }
 }
