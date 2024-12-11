@@ -24,18 +24,11 @@ export interface Message {
 }
 
 interface ChatProps {
-<<<<<<< Updated upstream
-  className?: string
-  messages: Message[]
-  onNewMessage: (message: string) => void
-  disabled?: boolean
-=======
   className?: string;
   messages: Message[];
   onNewMessage: (message: string) => void;
   disabled: boolean;
   currentProductId: string;
->>>>>>> Stashed changes
 }
 
 export function Chat({ className, messages, disabled = false }: ChatProps) {
