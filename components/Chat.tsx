@@ -28,6 +28,8 @@ interface ChatProps {
   messages: Message[]
   onNewMessage: (message: string) => void
   disabled?: boolean
+  remainingQuestions?: number // Added here
+  productId: string
 }
 
 export function Chat({ className, messages, disabled = false }: ChatProps) {
