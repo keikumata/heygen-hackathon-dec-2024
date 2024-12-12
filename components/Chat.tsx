@@ -15,6 +15,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { User } from 'lucide-react'
 import { useMessages } from '@/app/context/MessageContext'
+import { cn } from '@/lib/utils'
 
 export interface Message {
   id: string
@@ -30,9 +31,8 @@ interface ChatProps {
   disabled?: boolean
 }
 
-export function Chat({ className, messages, disabled = false }: ChatProps) {
-  const { addMessage } = useMessages();
-  const [inputMessage, setInputMessage] = useState('')
+export function Chat({ className, messages, onNewMessage, disabled }: ChatProps) {
+  const [inputValue, setInputValue] = useState('')
   const [username, setUsername] = useState('')
   const [isSettingUsername, setIsSettingUsername] = useState(!localStorage.getItem('username'))
 
@@ -43,18 +43,11 @@ export function Chat({ className, messages, disabled = false }: ChatProps) {
     }
   }, [])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (inputMessage.trim() && username) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        username,
-        content: inputMessage.trim(),
-        timestamp: new Date(),
-      }
-      console.log("New message:", newMessage)
-      addMessage?.(inputMessage.trim())
-      setInputMessage('')
+    if (inputValue.trim() && !disabled) {
+      onNewMessage(inputValue.trim())
+      setInputValue('')
     }
   }
 
@@ -123,16 +116,16 @@ export function Chat({ className, messages, disabled = false }: ChatProps) {
         </ScrollArea>
       </CardContent>
       <CardFooter className="p-4 border-t">
-        <form onSubmit={handleSendMessage} className="flex w-full space-x-2">
+        <form onSubmit={handleSubmit} className="flex w-full space-x-2">
           <Input
             type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder={username ? "Type your message..." : "Set username to chat"}
-            disabled={!username || disabled}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={disabled ? "Chat session ended" : "Type a message..."}
+            disabled={disabled}
             className="flex-grow"
           />
-          <Button type="submit" disabled={!username || disabled}>
+          <Button type="submit" disabled={disabled}>
             Send
           </Button>
         </form>

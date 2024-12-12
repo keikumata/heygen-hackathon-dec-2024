@@ -22,8 +22,17 @@ interface InteractiveAvatarProps {
   isMinimized?: boolean;
 }
 
+interface Product {
+  id: number;
+  name: string;
+  intro: string;
+  speech: string;
+}
+
 export default function InteractiveAvatar({ isMinimized = false }: InteractiveAvatarProps) {
   const { messages } = useMessages();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [currentProductIndex, setCurrentProductIndex] = useState<number>(0);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
   const [debug, setDebug] = useState<string>();
@@ -35,6 +44,27 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   const [hasIntroduced, setHasIntroduced] = useState(false);
   const hasInitialized = useRef(false);
   const hasPlayedIntro = useRef(false);
+  const [questionsAsked, setQuestionsAsked] = useState<number>(0);
+  const [hasFinished, setHasFinished] = useState(false);
+  const [isInIntroPhase, setIsInIntroPhase] = useState(true);
+  const [pendingProductIntro, setPendingProductIntro] = useState(false);
+  const isInIntroPhaseRef = useRef(true);
+  const pendingProductIntroRef = useRef(false);
+  const currentProductIndexRef = useRef(0);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/get-products');
+        const data = await response.json();
+        setProducts(data.products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Failed to load products');
+      }
+    }
+    fetchProducts();
+  }, []);
 
   async function fetchAccessToken() {
     try {
@@ -50,7 +80,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     return "";
   }
 
-  async function generateResponse(message: string, isIntroduction = false) {
+  async function generateResponse(message: string, isIntroduction = false, productId?: number) {
     try {
       const response = await fetch('/api/generate-response', {
         method: 'POST',
@@ -60,7 +90,8 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         body: JSON.stringify({
           message,
           context: messages,
-          isIntroduction
+          isIntroduction,
+          productId
         }),
       });
       
@@ -82,15 +113,19 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     if (!avatar.current) return;
     
     try {
-      const introResponse = await generateResponse("Introduce the product", true);
-      await avatar.current.speak({
-        text: introResponse,
-        taskType: TaskType.REPEAT,
-        taskMode: TaskMode.SYNC
-      });
-      setHasIntroduced(true);
+      if (!hasIntroduced) {
+        isInIntroPhaseRef.current = true;
+        pendingProductIntroRef.current = true;
+        const introResponse = await generateResponse("Introduce yourself", true);
+        setHasIntroduced(true);
+        await avatar.current.speak({
+          text: introResponse,
+          taskType: TaskType.REPEAT,
+          taskMode: TaskMode.SYNC
+        });
+      }
     } catch (error) {
-      console.error("Error introducing product:", error);
+      console.error("Error introducing:", error);
     }
   }
 
@@ -111,10 +146,6 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     
     avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
       console.log("Avatar started talking", e);
-    });
-    
-    avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
-      console.log("Avatar stopped talking", e);
     });
     
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
@@ -152,20 +183,42 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   }
 
   async function handleMessage(message: string) {
-    if (!avatar.current) {
-      setDebug("Avatar API not initialized");
+    if (!avatar.current || hasFinished || products.length === 0) {
+      setDebug("Avatar API not initialized, session finished, or no products loaded");
       return;
     }
 
     setIsGeneratingResponse(true);
-    console.log("Generating response for message:", message);
     try {
-      const response = await generateResponse(message, false);
+      const currentProduct = products[currentProductIndexRef.current];
+      const response = await generateResponse(message, false, currentProduct.id);
       await avatar.current.speak({
         text: response,
         taskType: TaskType.REPEAT,
         taskMode: TaskMode.SYNC
       });
+
+      const newQuestionsCount = questionsAsked + 1;
+      setQuestionsAsked(newQuestionsCount);
+
+      if (newQuestionsCount === 3) {
+        if (currentProductIndexRef.current < products.length - 1) {
+          setQuestionsAsked(0);
+          currentProductIndexRef.current = currentProductIndexRef.current + 1;
+          setCurrentProductIndex(currentProductIndexRef.current);
+          isInIntroPhaseRef.current = true;
+          const nextProduct = products[currentProductIndexRef.current];
+          const productIntro = await generateResponse("Introduce the product", true, nextProduct.id);
+          await avatar.current.speak({
+            text: productIntro,
+            taskType: TaskType.REPEAT,
+            taskMode: TaskMode.SYNC
+          });
+          isInIntroPhaseRef.current = false;
+        } else {
+          setHasFinished(true);
+        }
+      }
     } catch (e: any) {
       setDebug(e.message);
     } finally {
@@ -202,6 +255,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     console.log("messages", messages);
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.username === "User" && hasIntroduced) {
+      console.log("lastMessage", lastMessage);
       handleMessage(lastMessage.content);
     }
   }, [messages, hasIntroduced]);
@@ -217,6 +271,31 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     
     initAndStart();
   }, []); // Run once on mount
+
+  useEffect(() => {
+    if (avatar.current && products.length > 0) {
+      // Remove any existing handler first
+      avatar.current.off(StreamingEvents.AVATAR_STOP_TALKING, () => {});
+      
+      // Add new handler with access to current products
+      avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, async (e) => {
+        console.log("Avatar stopped talking", e, isInIntroPhaseRef.current, pendingProductIntroRef.current);
+        
+        if (isInIntroPhaseRef.current && pendingProductIntroRef.current) {
+          pendingProductIntroRef.current = false;
+          isInIntroPhaseRef.current = false;
+          
+          console.log("currentProductIndex", currentProductIndexRef.current, products);
+          const productIntro = await generateResponse("Introduce the product", true, products[currentProductIndexRef.current].id);
+          await avatar.current?.speak({
+            text: productIntro,
+            taskType: TaskType.REPEAT,
+            taskMode: TaskMode.SYNC
+          });
+        }
+      });
+    }
+  }, [products, avatar.current]);
 
   return (
     <div className={cn(
