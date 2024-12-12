@@ -165,8 +165,8 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         quality: AvatarQuality.Medium,
         avatarName: "Elenora_FitnessCoach_public",
         voice: {
-          rate: 1.2,
-          emotion: VoiceEmotion.EXCITED,
+          rate: 1.5,
+          emotion: VoiceEmotion.FRIENDLY,
         },
         language: 'en',
         disableIdleTimeout: true,
@@ -272,9 +272,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
           questionsAskedRef.current += 1;
           setQuestionsAsked(questionsAskedRef.current); // For UI updates
 
-          console.log("newQuestionsCount", questionsAskedRef.current);
-
-          if (questionsAskedRef.current === 4) {
+          if (questionsAskedRef.current === 3) {
             if (currentProductIndexRef.current < products.length - 1) {
               await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
 

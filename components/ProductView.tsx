@@ -14,7 +14,10 @@ export function ProductView() {
   return (
     <Card className="w-full h-full overflow-auto">
       <CardContent className="p-6">
-        <div className="flex gap-6">
+        <div 
+          key={currentProduct.id} 
+          className="flex gap-6 animate-fade-in duration-700"
+        >
           <div className="w-2/5 relative aspect-square">
             {currentProduct.assetPath.endsWith('.mp4') ? (
               <video

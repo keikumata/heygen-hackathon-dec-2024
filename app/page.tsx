@@ -25,20 +25,20 @@ export default function LiveShoppingPage() {
         <Logo />
       </header>
       <main className="flex-grow flex md:flex-row gap-4 p-4 overflow-hidden">
-        <div className="flex-grow flex flex-col gap-4 overflow-auto">
-          <div className="w-full">
+        <div className="flex-grow flex flex-col gap-4 max-h-full">
+          <div className="w-full h-[500px]">
             {hasStarted ? (
               <VideoStreamComponent isMinimized={false} />
             ) : (
-              <div className="h-[500px] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg" />
+              <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg" />
             )}
           </div>
-          <div className="flex-grow">
+          <div className="h-[calc(100%-500px-1rem)] min-h-0">
             <ProductView />
           </div>
         </div>
         <Chat 
-          className="w-full md:w-96 h-full" 
+          className="w-full md:min-w-[320px] md:w-96 h-full" 
           messages={messages}
           onNewMessage={(message) => addMessage(message, true)}
           disabled={!hasStarted}
