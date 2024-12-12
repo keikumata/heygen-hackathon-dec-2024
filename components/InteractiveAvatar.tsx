@@ -17,20 +17,16 @@ import { useEffect, useRef, useState } from "react";
 import { Message } from "./Chat";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/app/context/MessageContext";
+import { Product, useProduct } from "@/app/context/ProductContext";
 
 interface InteractiveAvatarProps {
   isMinimized?: boolean;
 }
 
-interface Product {
-  id: number;
-  name: string;
-  intro: string;
-  speech: string;
-}
 
 export default function InteractiveAvatar({ isMinimized = false }: InteractiveAvatarProps) {
   const { messages } = useMessages();
+  const { currentProduct, setCurrentProduct } = useProduct();
   const [products, setProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState<number>(0);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
@@ -51,6 +47,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   const isInIntroPhaseRef = useRef(true);
   const pendingProductIntroRef = useRef(false);
   const currentProductIndexRef = useRef(0);
+  const questionsAskedRef = useRef(0);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -166,7 +163,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
     try {
       const res = await avatar.current.createStartAvatar({
         quality: AvatarQuality.Medium,
-        avatarName: "fa7b34fe0b294f02b2fca6c1ed2c7158",
+        avatarName: "Elenora_FitnessCoach_public",
         voice: {
           rate: 1.2,
           emotion: VoiceEmotion.EXCITED,
@@ -197,28 +194,6 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         taskType: TaskType.REPEAT,
         taskMode: TaskMode.SYNC
       });
-
-      const newQuestionsCount = questionsAsked + 1;
-      setQuestionsAsked(newQuestionsCount);
-
-      if (newQuestionsCount === 3) {
-        if (currentProductIndexRef.current < products.length - 1) {
-          setQuestionsAsked(0);
-          currentProductIndexRef.current = currentProductIndexRef.current + 1;
-          setCurrentProductIndex(currentProductIndexRef.current);
-          isInIntroPhaseRef.current = true;
-          const nextProduct = products[currentProductIndexRef.current];
-          const productIntro = await generateResponse("Introduce the product", true, nextProduct.id);
-          await avatar.current.speak({
-            text: productIntro,
-            taskType: TaskType.REPEAT,
-            taskMode: TaskMode.SYNC
-          });
-          isInIntroPhaseRef.current = false;
-        } else {
-          setHasFinished(true);
-        }
-      }
     } catch (e: any) {
       setDebug(e.message);
     } finally {
@@ -284,14 +259,45 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         if (isInIntroPhaseRef.current && pendingProductIntroRef.current) {
           pendingProductIntroRef.current = false;
           isInIntroPhaseRef.current = false;
-          
-          console.log("currentProductIndex", currentProductIndexRef.current, products);
+
+          setCurrentProduct(products[currentProductIndexRef.current]);
           const productIntro = await generateResponse("Introduce the product", true, products[currentProductIndexRef.current].id);
           await avatar.current?.speak({
             text: productIntro,
             taskType: TaskType.REPEAT,
             taskMode: TaskMode.SYNC
           });
+        } else {
+          // Handle question count logic using ref
+          questionsAskedRef.current += 1;
+          setQuestionsAsked(questionsAskedRef.current); // For UI updates
+
+          console.log("newQuestionsCount", questionsAskedRef.current);
+
+          if (questionsAskedRef.current === 4) {
+            if (currentProductIndexRef.current < products.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+
+              questionsAskedRef.current = 0; // Reset the ref
+              setQuestionsAsked(0);
+              currentProductIndexRef.current = currentProductIndexRef.current + 1;
+              setCurrentProductIndex(currentProductIndexRef.current);
+              setCurrentProduct(products[currentProductIndexRef.current]);
+              isInIntroPhaseRef.current = true;
+
+              
+              const nextProduct = products[currentProductIndexRef.current];
+              const productIntro = await generateResponse("Introduce the product", true, nextProduct.id);
+              await avatar.current?.speak({
+                text: productIntro,
+                taskType: TaskType.REPEAT,
+                taskMode: TaskMode.SYNC
+              });
+              isInIntroPhaseRef.current = false;
+            } else {
+              setHasFinished(true);
+            }
+          }
         }
       });
     }

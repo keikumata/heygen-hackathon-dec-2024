@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import { ThemeProvider } from "@/components/theme-provider"
 import { VideoStreamProvider } from '@/app/context/VideoStreamContext';
 import { MessageProvider } from './context/MessageContext';
+import { ProductProvider } from './context/ProductContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,9 +23,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <MessageProvider>
-            <VideoStreamProvider>
+            <ProductProvider>
+              <VideoStreamProvider>
               {children}
-            </VideoStreamProvider>
+              </VideoStreamProvider>
+            </ProductProvider>
           </MessageProvider>
         </ThemeProvider>
       </body>
