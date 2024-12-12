@@ -43,6 +43,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [hasIntroduced, setHasIntroduced] = useState(false);
   const hasInitialized = useRef(false);
+  
   const hasPlayedIntro = useRef(false);
   const [questionsAsked, setQuestionsAsked] = useState<number>(0);
   const [hasFinished, setHasFinished] = useState(false);
@@ -187,7 +188,7 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
       setDebug("Avatar API not initialized, session finished, or no products loaded");
       return;
     }
-
+  
     setIsGeneratingResponse(true);
     try {
       const currentProduct = products[currentProductIndexRef.current];
@@ -197,15 +198,16 @@ export default function InteractiveAvatar({ isMinimized = false }: InteractiveAv
         taskType: TaskType.REPEAT,
         taskMode: TaskMode.SYNC
       });
-
+  
       const newQuestionsCount = questionsAsked + 1;
       setQuestionsAsked(newQuestionsCount);
-
+  
       if (newQuestionsCount === 3) {
         if (currentProductIndexRef.current < products.length - 1) {
           setQuestionsAsked(0);
           currentProductIndexRef.current = currentProductIndexRef.current + 1;
           setCurrentProductIndex(currentProductIndexRef.current);
+          sessionStorage.setItem('currentProductIndex', currentProductIndexRef.current.toString());
           isInIntroPhaseRef.current = true;
           const nextProduct = products[currentProductIndexRef.current];
           const productIntro = await generateResponse("Introduce the product", true, nextProduct.id);
